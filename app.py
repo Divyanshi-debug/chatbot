@@ -12,12 +12,8 @@ NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 greet_messages=["hi","hello","hey","hi there","hey there"]
 date_msgs=["what is the date today", "date", "tell me the date"]
 time_msgs=["what is the time today", "time", "tell me the time"]
-web_msgs=["open google","google","open web browser"]
 
-# if msg=="hi":
-#     print("Hello how are you?")
-# else:
-#     print("I can't understand")
+
 def get_location():
     response=requests.get("http://ip-api.com/json/")
     data=response.json()
@@ -30,7 +26,21 @@ def get_news():
     response = requests.get(f"https://newsapi.org/v2/everything?q=india&language=en&sortBy=publishedAt&apiKey={NEWS_API_KEY}")
     data = response.json()
     return data.get("articles", [])
-
+    
+def get_current_temperature():
+    try:
+        response = requests.get("http://ip-api.com/json/")
+        data = response.json()
+        lat = data.get("lat")
+        lon = data.get("lon")
+        weather_api_key = "c80edaca2ec8061c97958dbf4adb4944"
+        weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={weather_api_key}&units=metric"
+        weather_response = requests.get(weather_url)
+        weather_data = weather_response.json()
+        temperature = weather_data['main']['temp']
+        return temperature
+    except:
+        return None
 
 chat=True
 while chat:
@@ -53,22 +63,23 @@ while chat:
     elif "location" in msg:
         country,city= get_location()
         print(f"Your location is {city}, {country}")
-    # elif "news" in msg:
-    #     news=get_news()
-    #     print("DEBUG: number of articles =", len(news))
-    #     for i in range(min(5, len(news))):
-    #         print(f"{i+1}. {news[i].get('title', 'No title')}")   
+     
     elif "news" in msg:
         news = get_news()
-
         if not news:
             print("No news available right now.")
         else:
             print("Top India-related news 🇮🇳:\n")
             for i in range(5):
                 print(f"{i+1}. {news[i].get('title', 'No title')}")
-
+    elif "weather" in msg:
+        temperature = get_current_temperature()
+        if temperature is not None:
+            print(f"The current temperature is {temperature}°C")
+        else:
+            print("Could not retrieve the temperature at this time.")
     elif msg=="bye":
         chat=False
     else:
         print("I can't understand")
+
